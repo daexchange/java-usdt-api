@@ -108,8 +108,8 @@ public class WalletController {
 	 */
 	@ApiOperation(value = "转账", notes = "转账")
 	@RequestMapping(value = "transfer-from-address", method = { RequestMethod.GET, RequestMethod.POST })
-	public MessageResult transferFromAddress(String fromAddress, String address, BigDecimal amount, BigDecimal fee) {
-		logger.info("transfer:fromeAddress={},address={},amount={},fee={}", fromAddress, address, amount, fee);
+	public MessageResult transferFromAddress(String fromAddress, String address, BigDecimal amount) {
+		logger.info("transfer:fromeAddress={},address={},amount={}", fromAddress, address, amount);
 		try {
 			BigDecimal transferedAmt = BigDecimal.ZERO;
 			if (fromAddress.equalsIgnoreCase(address))
