@@ -27,6 +27,7 @@ public class WalletController {
 
 	/**
 	 * 获取USDT链高度
+	 * 
 	 * @return
 	 */
 	@ApiOperation(value = "获取USDT链高度", notes = "获取USDT链高度")
@@ -41,9 +42,10 @@ public class WalletController {
 			return MessageResult.error(500, "error:" + e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * 获取USDT区块高度为startBlockNumber的交易数据
+	 * 
 	 * @return
 	 */
 	@ApiOperation(value = "获取USDT链区块交易数据", notes = "获取USDT链区块交易数据")
@@ -58,9 +60,10 @@ public class WalletController {
 			return MessageResult.error(500, "error:" + e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * 根据交易编号获取交易详细数据
+	 * 
 	 * @return
 	 */
 	@ApiOperation(value = "根据交易编号获取交易详细数据", notes = "根据交易编号获取交易详细数据")
@@ -76,10 +79,10 @@ public class WalletController {
 			return MessageResult.error(500, "error:" + e.getMessage());
 		}
 	}
-	
 
 	/**
 	 * 获取账户地址
+	 * 
 	 * @param account
 	 * @return
 	 */
@@ -99,7 +102,8 @@ public class WalletController {
 	}
 
 	/**
-	 * 转账 
+	 * 转账
+	 * 
 	 * @param fromAddress
 	 * @param address
 	 * @param amount
@@ -111,20 +115,15 @@ public class WalletController {
 	public MessageResult transferFromAddress(String fromAddress, String address, BigDecimal amount) {
 		logger.info("transfer:fromeAddress={},address={},amount={}", fromAddress, address, amount);
 		try {
-			BigDecimal transferedAmt = BigDecimal.ZERO;
 			if (fromAddress.equalsIgnoreCase(address))
 				return MessageResult.error(500, "转入转出地址不能一样");
 			BigDecimal availAmt = jsonrpcClient.omniGetBalance(fromAddress);
-			if (availAmt.compareTo(amount) > 0) {
-				availAmt = amount;
+			if (availAmt.compareTo(amount) < 0) {
+				return MessageResult.error(500, "余额不足不能转账");
 			}
 			String txid = jsonrpcClient.omniSend(fromAddress, address, amount);
-			if (txid != null) {
-				logger.info("fromAddress" + fromAddress + ",txid:" + txid);
-				transferedAmt = transferedAmt.add(availAmt);
-			}
 			MessageResult result = new MessageResult(0, "success");
-			result.setData(transferedAmt);
+			result.setData(txid);
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -134,6 +133,7 @@ public class WalletController {
 
 	/**
 	 * 获取账户地址余额
+	 * 
 	 * @param address
 	 * @return
 	 */
