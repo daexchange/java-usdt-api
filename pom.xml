@@ -65,6 +65,38 @@
 			<artifactId>unirest-java</artifactId>
 			<version>1.4.9</version>
 		</dependency>
+		<dependency>
+			<groupId>ai.turbochain.ipex</groupId>
+			<artifactId>ipex-rpc-common</artifactId>
+			<version>1.0.1</version>
+		</dependency>
+		<!-- <dependency> <groupId>com.spark.bc</groupId> <artifactId>bitcoin-rpc</artifactId> 
+			</dependency> -->
+		<dependency>
+			<groupId>org.bitcoinj</groupId>
+			<artifactId>bitcoinj-core</artifactId>
+			<version>0.15.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>27.1-jre</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.4.8</version>
+		</dependency>
+		<dependency>
+			<groupId>com.osp.blockchain</groupId>
+			<artifactId>blockchain-base</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.osp.blockchain</groupId>
+			<artifactId>blockchain-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>java-usdt-api</finalName>

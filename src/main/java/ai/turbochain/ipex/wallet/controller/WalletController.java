@@ -6,12 +6,17 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ai.turbochain.ipex.wallet.config.JsonrpcClient;
+import ai.turbochain.ipex.wallet.entity.BtcBean;
+import ai.turbochain.ipex.wallet.service.AccountService;
+import ai.turbochain.ipex.wallet.util.BTCAccountGenerator;
 import ai.turbochain.ipex.wallet.util.MessageResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -24,6 +29,10 @@ public class WalletController {
 
 	@Autowired
 	private JsonrpcClient jsonrpcClient;
+	@Autowired
+	private BTCAccountGenerator btcAccountGenerator;
+	@Autowired
+	private AccountService accountService;
 
 	/**
 	 * 获取USDT链高度
@@ -79,25 +88,31 @@ public class WalletController {
 			return MessageResult.error(500, "error:" + e.getMessage());
 		}
 	}
-
+	
 	/**
-	 * 获取账户地址
+	 * 创建钱包
 	 * 
-	 * @param account
+	 * @param password
+	 * @param apiCode
+	 * @param priv
+	 * @param label
+	 * @param email
 	 * @return
 	 */
 	@ApiOperation(value = "获取账户地址", notes = "获取账户地址")
-	@RequestMapping(value = "address/{account}", method = { RequestMethod.GET, RequestMethod.POST })
-	public MessageResult getNewAddress(@PathVariable String account) {
-		logger.info("create new address :" + account);
+	@GetMapping("address/{account}")
+	public MessageResult createWallet(@PathVariable String account,
+			@RequestParam(required = false, defaultValue = "") String password) {
+		logger.info("create new wallet:account={},password={}", account, password);
 		try {
-			String address = jsonrpcClient.getNewAddress(account);
+			BtcBean btcBean = btcAccountGenerator.createBtcAccount();
+			accountService.saveBTCOne(account, btcBean.getFile(), btcBean.getBtcAddress(), "");
 			MessageResult result = new MessageResult(0, "success");
-			result.setData(address);
+			result.setData(btcBean.getBtcAddress());
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
-			return MessageResult.error(500, "error:" + e.getMessage());
+			return MessageResult.error(500, "查询失败， error: " + e.getMessage());
 		}
 	}
 
