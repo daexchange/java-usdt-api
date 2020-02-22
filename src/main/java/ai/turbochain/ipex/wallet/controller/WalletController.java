@@ -65,8 +65,12 @@ public class WalletController {
 		try {
 			MessageResult result = new MessageResult(0, "success");
 			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLOCKNO_LATEST, "");
-			JSONObject resultObj = JSONObject.parseObject(resultStr);
-			result.setData(resultObj.getLong("data"));
+			if (StringUtils.isNotBlank(resultStr)) {
+				JSONObject resultObj = JSONObject.parseObject(resultStr);
+				if (null != resultObj) {
+					result.setData(resultObj.getLong("data"));
+				}
+			}
 //			result.setData(Long.valueOf(jsonrpcClient.getBlockCount()));
 			return result;
 		} catch (Exception e) {
@@ -86,8 +90,12 @@ public class WalletController {
 		try {
 			MessageResult result = new MessageResult(0, "success");
 			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLOCKNO_HEIGHT + blockNumber, "");
-			JSONObject resultObj = JSONObject.parseObject(resultStr);
-			result.setData(resultObj.getLong("data"));
+			if (StringUtils.isNotBlank(resultStr)) {
+				JSONObject resultObj = JSONObject.parseObject(resultStr);
+				if (null != resultObj) {
+					result.setData(resultObj.getLong("data"));
+				}
+			}
 //			result.setData(jsonrpcClient.omniListBlockTransactions(blockNumber));
 			return result;
 		} catch (Exception e) {
@@ -107,8 +115,12 @@ public class WalletController {
 		try {
 			MessageResult result = new MessageResult(0, "success");
 			String resultStr = HttpRequest.sendGetData(Constant.ACT_TRANSACTION_HASH + txid, "");
-			JSONObject resultObj = JSONObject.parseObject(resultStr);
-			result.setData(resultObj.getLong("data"));
+			if (StringUtils.isNotBlank(resultStr)) {
+				JSONObject resultObj = JSONObject.parseObject(resultStr);
+				if (null != resultObj) {
+					result.setData(resultObj.getLong("data"));
+				}
+			}
 //			Map<String, Object> map = jsonrpcClient.omniGetTransactions(txid);
 //			result.setData(map);
 			return result;
@@ -180,12 +192,17 @@ public class WalletController {
 	@RequestMapping(value = "balance/{address}", method = { RequestMethod.GET, RequestMethod.POST })
 	public MessageResult balance(@PathVariable String address) {
 		try {
-			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLANCE_ADDRESS + address, "");
-			JSONObject resultObj = JSONObject.parseObject(resultStr);
-			BigDecimal balance = resultObj.getBigDecimal("data");
-//			BigDecimal balance = jsonrpcClient.omniGetBalance(address);
 			MessageResult result = new MessageResult(0, "success");
-			result.setData(balance);
+			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLANCE_ADDRESS + address, "");
+			if (StringUtils.isNotBlank(resultStr)) {
+				JSONObject resultObj = JSONObject.parseObject(resultStr);
+				if (null != resultObj) {
+					BigDecimal balance = resultObj.getBigDecimal("data");
+					result.setData(balance);
+				}
+
+			}
+//			BigDecimal balance = jsonrpcClient.omniGetBalance(address);
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
