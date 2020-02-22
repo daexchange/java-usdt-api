@@ -4,7 +4,10 @@ import ai.turbochain.ipex.wallet.config.Constant;
 import ai.turbochain.ipex.wallet.config.JsonrpcClient;
 import ai.turbochain.ipex.wallet.entity.Coin;
 import ai.turbochain.ipex.wallet.entity.Deposit;
+import ai.turbochain.ipex.wallet.entity.WatcherLog;
+import ai.turbochain.ipex.wallet.event.DepositEvent;
 import ai.turbochain.ipex.wallet.service.AccountService;
+import ai.turbochain.ipex.wallet.service.WatcherLogService;
 import ai.turbochain.ipex.wallet.util.HttpRequest;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -26,12 +29,20 @@ public class UsdtWatcher extends Watcher {
 	@Autowired
 	private AccountService accountService;
 	@Autowired
-	private JsonrpcClient jsonrpcClient;
+	private WatcherLogService watcherLogService;
+	@Autowired
+	private DepositEvent depositEvent;
+	@Autowired
+	private Coin coin;
 	// 比特币单位转换聪
 	private BigDecimal bitcoin = new BigDecimal("100000000");
-	// 默认同步间隔5秒
+	// 默认同步间隔3分钟
 	private Long checkInterval = 180000L;
 	private boolean stop = false;
+	// 区块确认数
+	private int confirmation = 1;
+	private Long currentBlockHeight = 0L;
+	private int step = 1;
 
 
 
@@ -108,6 +119,29 @@ public class UsdtWatcher extends Watcher {
 					logger.info(ex.getMessage());
 				}
 			}
+		}
+	}
+
+	public void check() {
+		try {
+			Long networkBlockNumber = getNetworkBlockHeight() - confirmation + 1;
+			Thread.sleep(90000);
+			if (currentBlockHeight < networkBlockNumber) {
+				long startBlockNumber = currentBlockHeight + 1;
+				currentBlockHeight = (networkBlockNumber - currentBlockHeight > step) ? currentBlockHeight + step
+						: networkBlockNumber;
+				logger.info("replay block from {} to {}", startBlockNumber, currentBlockHeight);
+				List<Deposit> deposits = replayBlock(startBlockNumber, currentBlockHeight);
+				deposits.forEach(deposit -> {
+					depositEvent.onConfirmed(deposit);
+				});
+				// 记录日志
+				watcherLogService.update(coin.getName(), currentBlockHeight);
+			} else {
+				logger.info("already latest height {},nothing to do!", currentBlockHeight);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }
