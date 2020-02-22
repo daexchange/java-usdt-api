@@ -1,17 +1,24 @@
 package ai.turbochain.ipex.wallet.controller;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import ai.turbochain.ipex.wallet.config.Constant;
+import ai.turbochain.ipex.wallet.entity.Deposit;
+import ai.turbochain.ipex.wallet.util.HttpRequest;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
+import com.spark.blockchain.rpcclient.Bitcoin;
+import com.spark.blockchain.rpcclient.BitcoinException;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import ai.turbochain.ipex.wallet.config.JsonrpcClient;
 import ai.turbochain.ipex.wallet.entity.BtcBean;
@@ -33,6 +40,19 @@ public class WalletController {
 	private BTCAccountGenerator btcAccountGenerator;
 	@Autowired
 	private AccountService accountService;
+	// 比特币单位转换聪
+	private BigDecimal bitcoin = new BigDecimal("100000000");
+	@PostMapping("/test")
+	public MessageResult test() {
+		try {
+			MessageResult result = new MessageResult(0, "success");
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return MessageResult.error(500, "error:" + e.getMessage());
+		}
+	}
+
 
 	/**
 	 * 获取USDT链高度
@@ -44,7 +64,10 @@ public class WalletController {
 	public MessageResult getNetworkBlockHeight() {
 		try {
 			MessageResult result = new MessageResult(0, "success");
-			result.setData(Long.valueOf(jsonrpcClient.getBlockCount()));
+			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLOCKNO_LATEST, "");
+			JSONObject resultObj = JSONObject.parseObject(resultStr);
+			result.setData(resultObj.getLong("data"));
+//			result.setData(Long.valueOf(jsonrpcClient.getBlockCount()));
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -62,7 +85,10 @@ public class WalletController {
 	public MessageResult blockTxns(@PathVariable Long blockNumber) {
 		try {
 			MessageResult result = new MessageResult(0, "success");
-			result.setData(jsonrpcClient.omniListBlockTransactions(blockNumber));
+			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLOCKNO_HEIGHT + blockNumber, "");
+			JSONObject resultObj = JSONObject.parseObject(resultStr);
+			result.setData(resultObj.getLong("data"));
+//			result.setData(jsonrpcClient.omniListBlockTransactions(blockNumber));
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -80,8 +106,11 @@ public class WalletController {
 	public MessageResult txninfo(@PathVariable String txid) {
 		try {
 			MessageResult result = new MessageResult(0, "success");
-			Map<String, Object> map = jsonrpcClient.omniGetTransactions(txid);
-			result.setData(map);
+			String resultStr = HttpRequest.sendGetData(Constant.ACT_TRANSACTION_HASH + txid, "");
+			JSONObject resultObj = JSONObject.parseObject(resultStr);
+			result.setData(resultObj.getLong("data"));
+//			Map<String, Object> map = jsonrpcClient.omniGetTransactions(txid);
+//			result.setData(map);
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -92,11 +121,7 @@ public class WalletController {
 	/**
 	 * 创建钱包
 	 * 
-	 * @param password
-	 * @param apiCode
-	 * @param priv
-	 * @param label
-	 * @param email
+	 * @param account
 	 * @return
 	 */
 	@ApiOperation(value = "获取账户地址", notes = "获取账户地址")
@@ -122,7 +147,6 @@ public class WalletController {
 	 * @param fromAddress
 	 * @param address
 	 * @param amount
-	 * @param fee
 	 * @return
 	 */
 	@ApiOperation(value = "转账", notes = "转账")
@@ -156,7 +180,10 @@ public class WalletController {
 	@RequestMapping(value = "balance/{address}", method = { RequestMethod.GET, RequestMethod.POST })
 	public MessageResult balance(@PathVariable String address) {
 		try {
-			BigDecimal balance = jsonrpcClient.omniGetBalance(address);
+			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLANCE_ADDRESS + address, "");
+			JSONObject resultObj = JSONObject.parseObject(resultStr);
+			BigDecimal balance = resultObj.getBigDecimal("data");
+//			BigDecimal balance = jsonrpcClient.omniGetBalance(address);
 			MessageResult result = new MessageResult(0, "success");
 			result.setData(balance);
 			return result;
