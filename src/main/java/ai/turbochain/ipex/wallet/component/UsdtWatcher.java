@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -41,10 +42,7 @@ public class UsdtWatcher extends Watcher {
 	private boolean stop = false;
 	// 区块确认数
 	private int confirmation = 1;
-	private Long currentBlockHeight = 0L;
 	private int step = 1;
-
-
 
 	@Override
 	public List<Deposit> replayBlock(Long startBlockNumber, Long endBlockNumber) {
@@ -99,6 +97,28 @@ public class UsdtWatcher extends Watcher {
 		}
 	}
 
+	public void check() { 
+		try {
+			Long networkBlockNumber = getNetworkBlockHeight() - confirmation + 1;
+			Thread.sleep(90000);
+			if (getCurrentBlockHeight() < networkBlockNumber) {
+				long startBlockNumber = getCurrentBlockHeight() + 1;
+				logger.info("replay block  {}", startBlockNumber);
+				List<Deposit> deposits = replayBlock(startBlockNumber, startBlockNumber);
+				deposits.forEach(deposit -> {
+					depositEvent.onConfirmed(deposit);
+				});
+				// 记录日志
+				watcherLogService.update(coin.getName(), startBlockNumber);
+				setCurrentBlockHeight(startBlockNumber);
+			} else {
+				logger.info("already latest height {},nothing to do!", getCurrentBlockHeight());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void run() {
 		stop = false;
@@ -119,29 +139,6 @@ public class UsdtWatcher extends Watcher {
 					logger.info(ex.getMessage());
 				}
 			}
-		}
-	}
-
-	public void check() {
-		try {
-			Long networkBlockNumber = getNetworkBlockHeight() - confirmation + 1;
-			Thread.sleep(90000);
-			if (currentBlockHeight < networkBlockNumber) {
-				long startBlockNumber = currentBlockHeight + 1;
-				currentBlockHeight = (networkBlockNumber - currentBlockHeight > step) ? currentBlockHeight + step
-						: networkBlockNumber;
-				logger.info("replay block from {} to {}", startBlockNumber, currentBlockHeight);
-				List<Deposit> deposits = replayBlock(startBlockNumber, currentBlockHeight);
-				deposits.forEach(deposit -> {
-					depositEvent.onConfirmed(deposit);
-				});
-				// 记录日志
-				watcherLogService.update(coin.getName(), currentBlockHeight);
-			} else {
-				logger.info("already latest height {},nothing to do!", currentBlockHeight);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 }
