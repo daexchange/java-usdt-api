@@ -35,14 +35,11 @@ public class UsdtWatcher extends Watcher {
 	private DepositEvent depositEvent;
 	@Autowired
 	private Coin coin;
-	// 比特币单位转换聪
-	private BigDecimal bitcoin = new BigDecimal("100000000");
 	// 默认同步间隔3分钟
 	private Long checkInterval = 180000L;
 	private boolean stop = false;
 	// 区块确认数
 	private int confirmation = 1;
-	private int step = 1;
 
 	@Override
 	public List<Deposit> replayBlock(Long startBlockNumber, Long endBlockNumber) {
@@ -64,8 +61,7 @@ public class UsdtWatcher extends Watcher {
 						JSONObject out = outArray.getJSONObject(j);
 						String address = out.getString("address");
 						if (StringUtils.isNotBlank(address) && accountService.isAddressExist(address)) {
-							BigDecimal amount = out.getBigDecimal("value").divide(bitcoin).setScale(8,
-									BigDecimal.ROUND_DOWN);
+							BigDecimal amount = out.getBigDecimal("value");
 							Deposit deposit = new Deposit();
 							deposit.setTxid(txHash);
 							deposit.setBlockHeight(height);
