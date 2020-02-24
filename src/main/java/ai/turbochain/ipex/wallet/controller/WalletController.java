@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import ai.turbochain.ipex.wallet.config.Constant;
+import ai.turbochain.ipex.wallet.entity.Account;
 import ai.turbochain.ipex.wallet.entity.Deposit;
+import ai.turbochain.ipex.wallet.service.TransactionService;
 import ai.turbochain.ipex.wallet.util.HttpRequest;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -15,6 +17,7 @@ import com.google.common.collect.Lists;
 import com.spark.blockchain.rpcclient.Bitcoin;
 import com.spark.blockchain.rpcclient.BitcoinException;
 import org.apache.commons.lang.StringUtils;
+import org.bitcoinj.core.UTXO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +43,9 @@ public class WalletController {
 	private BTCAccountGenerator btcAccountGenerator;
 	@Autowired
 	private AccountService accountService;
-	// 比特币单位转换聪
-	private BigDecimal bitcoin = new BigDecimal("100000000");
+	@Autowired
+	private TransactionService transactionService;
+
 	@PostMapping("/test")
 	public MessageResult test() {
 		try {
@@ -163,18 +167,35 @@ public class WalletController {
 	 */
 	@ApiOperation(value = "转账", notes = "转账")
 	@RequestMapping(value = "transfer-from-address", method = { RequestMethod.GET, RequestMethod.POST })
-	public MessageResult transferFromAddress(String fromAddress, String address, BigDecimal amount) {
+	public MessageResult transferFromAddress(String username, String fromAddress, String address, BigDecimal amount) {
 		logger.info("transfer:fromeAddress={},address={},amount={}", fromAddress, address, amount);
 		try {
-			if (fromAddress.equalsIgnoreCase(address))
+			if (fromAddress.equalsIgnoreCase(address)) {
 				return MessageResult.error(500, "转入转出地址不能一样");
-			BigDecimal availAmt = jsonrpcClient.omniGetBalance(fromAddress);
+			}
+			Account account = accountService.findByName(username);
+			if (account == null) {
+				return MessageResult.error(500, "请传入正确的用户名" + username);
+			}
+//			BigDecimal availAmt = jsonrpcClient.omniGetBalance(fromAddress);
+			// 查询余额
+//			BigDecimal availAmt = new BigDecimal(0);
+			BigDecimal availAmt = new BigDecimal(10000000000L);
+			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLANCE_ADDRESS + fromAddress, "");
+			if (StringUtils.isNotBlank(resultStr)) {
+				JSONObject resultObj = JSONObject.parseObject(resultStr);
+				if (null != resultObj &&  null != resultObj.getBigDecimal("data")) {
+					availAmt = resultObj.getBigDecimal("data");
+				} else {
+					return MessageResult.error(500, "地址余额为空");
+				}
+			}
 			if (availAmt.compareTo(amount) < 0) {
 				return MessageResult.error(500, "余额不足不能转账");
 			}
-			String txid = jsonrpcClient.omniSend(fromAddress, address, amount);
-			MessageResult result = new MessageResult(0, "success");
-			result.setData(txid);
+//			String txid = jsonrpcClient.omniSend(fromAddress, address, amount);
+			//发送交易
+			MessageResult result = transactionService.transferFromWallet(account.getPriv() ,fromAddress, address, amount);
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();

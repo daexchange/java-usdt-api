@@ -86,6 +86,7 @@ public class HttpRequest {
 
 //    public static void main(String[] args) {
 //        String str = sendGetData("https://blockchain.info/block-height/593323?format=json","");
+//        String str = sendPost("https://wallet.tokenview.com/onchainwallet/btc")
 //        System.out.println("str: " + str);
 //    }
 
