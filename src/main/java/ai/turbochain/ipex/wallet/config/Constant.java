@@ -61,7 +61,7 @@ public class Constant {
 	public static final String ACT_BLOCKNO_HEIGHT = ACT_PREFIX + "block/usdt/";
 	public static final String ACT_BLOCKNO_LATEST = ACT_PREFIX + "coin/latest/usdt";
 	public static final String ACT_BLANCE_ADDRESS = ACT_PREFIX + "addr/b/usdt/";
-	public static final String ACT_TRANSACTION_HASH = ACT_PREFIX + "search/";
+	public static final String ACT_TRANSACTION_HASH = ACT_PREFIX + "tx/usdt/";
 	public static final String ACT_TRANSACTION_PUSHTX = ACT_PREFIX + "onchainwallet/usdt";
 	public static final String ACT_CREATE_WALLET="https://tc.ipcom.io/btcwallet/api/v2/create";
 	public static final String FORMAT_PARAM = "?format=json";

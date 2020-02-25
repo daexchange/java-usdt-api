@@ -1,6 +1,8 @@
 package ai.turbochain.ipex.wallet.service;
 
 import ai.turbochain.ipex.wallet.config.Constant;
+import ai.turbochain.ipex.wallet.entity.Account;
+import ai.turbochain.ipex.wallet.entity.BalanceData;
 import ai.turbochain.ipex.wallet.util.HttpRequest;
 import ai.turbochain.ipex.wallet.util.MessageResult;
 import com.alibaba.fastjson.JSON;
@@ -212,15 +214,15 @@ public class TransactionService {
 	 * @param amount
 	 * @return
 	 */
-	public MessageResult transferFromWallet(String privateKey, String fromAddress, String address, BigDecimal amount) {
-		Integer propertyid = 1;
+	public MessageResult transferFromWallet(Account account, String fromAddress, String address, BigDecimal amount) {
+		Integer propertyid = 31;
 		// 获取UTXO列表
 		List< UTXO > utxos = this.getUnspent(fromAddress);
 		// 获取手续费
 		Long fee = this.getOmniFee(utxos);
 		try {
 			// 获取签名后的交易
-			String signedHex = this.omniSign(fromAddress, address, privateKey,amount, fee, propertyid, utxos);
+			String signedHex = this.omniSign(fromAddress, address, account.getPriv(), amount, fee, propertyid, utxos);
 			// 广播交易
 			String txHash = this.pushTx(signedHex);
 			if (StringUtils.isNotBlank(txHash)) {

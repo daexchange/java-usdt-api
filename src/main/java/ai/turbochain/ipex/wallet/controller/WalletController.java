@@ -97,7 +97,12 @@ public class WalletController {
 			if (StringUtils.isNotBlank(resultStr)) {
 				JSONObject resultObj = JSONObject.parseObject(resultStr);
 				if (null != resultObj) {
-					result.setData(resultObj.getLong("data"));
+					JSONArray resultData = resultObj.getJSONArray("data");
+					if (null != resultData && null != resultData.getJSONObject(0)) {
+						JSONObject blockData = resultData.getJSONObject(0);
+						JSONArray txArray = blockData.getJSONArray("txs");
+						result.setData(txArray);
+					}
 				}
 			}
 //			result.setData(jsonrpcClient.omniListBlockTransactions(blockNumber));
@@ -122,7 +127,8 @@ public class WalletController {
 			if (StringUtils.isNotBlank(resultStr)) {
 				JSONObject resultObj = JSONObject.parseObject(resultStr);
 				if (null != resultObj) {
-					result.setData(resultObj.getLong("data"));
+					JSONObject resultData = resultObj.getJSONObject("data");
+					result.setData(resultData);
 				}
 			}
 //			Map<String, Object> map = jsonrpcClient.omniGetTransactions(txid);
@@ -179,8 +185,7 @@ public class WalletController {
 			}
 //			BigDecimal availAmt = jsonrpcClient.omniGetBalance(fromAddress);
 			// 查询余额
-//			BigDecimal availAmt = new BigDecimal(0);
-			BigDecimal availAmt = new BigDecimal(10000000000L);
+			BigDecimal availAmt = new BigDecimal(0);
 			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLANCE_ADDRESS + fromAddress, "");
 			if (StringUtils.isNotBlank(resultStr)) {
 				JSONObject resultObj = JSONObject.parseObject(resultStr);
@@ -195,7 +200,7 @@ public class WalletController {
 			}
 //			String txid = jsonrpcClient.omniSend(fromAddress, address, amount);
 			//发送交易
-			MessageResult result = transactionService.transferFromWallet(account.getPriv() ,fromAddress, address, amount);
+			MessageResult result = transactionService.transferFromWallet(account ,fromAddress, address, amount);
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
