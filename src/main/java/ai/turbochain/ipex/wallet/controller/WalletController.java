@@ -14,13 +14,20 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.osp.blockchain.btc.client.OspBlockExplorer;
+import com.osp.blockchain.btc.model.BlockchainAddressResponse;
+import com.osp.blockchain.http.HttpUtil;
 import com.spark.blockchain.rpcclient.Bitcoin;
 import com.spark.blockchain.rpcclient.BitcoinException;
+import info.blockchain.api.blockexplorer.entity.Input;
+import info.blockchain.api.blockexplorer.entity.Output;
+import info.blockchain.api.blockexplorer.entity.Transaction;
 import org.apache.commons.lang.StringUtils;
 import org.bitcoinj.core.UTXO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
 import ai.turbochain.ipex.wallet.config.JsonrpcClient;
@@ -47,10 +54,12 @@ public class WalletController {
 	private TransactionService transactionService;
 
 	@PostMapping("/test")
-	public MessageResult test() {
+	public MessageResult test(String address) {
 		try {
-			MessageResult result = new MessageResult(0, "success");
-			return result;
+//			List< UTXO > utxos = transactionService.getUnspent(fromAddress);
+//			Long fee = transactionService.getOmniFee(utxos);
+//			String signedHex = transactionService.omniSign(fromAddress, address, "", amount, fee, propertyid, utxos);
+			return MessageResult.success();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return MessageResult.error(500, "error:" + e.getMessage());
@@ -184,7 +193,7 @@ public class WalletController {
 				return MessageResult.error(500, "请传入正确的用户名" + username);
 			}
 //			BigDecimal availAmt = jsonrpcClient.omniGetBalance(fromAddress);
-			// 查询余额
+//			 查询余额
 			BigDecimal availAmt = new BigDecimal(0);
 			String resultStr = HttpRequest.sendGetData(Constant.ACT_BLANCE_ADDRESS + fromAddress, "");
 			if (StringUtils.isNotBlank(resultStr)) {

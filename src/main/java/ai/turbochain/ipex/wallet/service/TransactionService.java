@@ -46,8 +46,6 @@ public class TransactionService {
 
 	private NetworkParameters params;
 
-	private Boolean isMainNet = false;
-
 	@Autowired
 	private AccountService accountService;
 
@@ -65,7 +63,7 @@ public class TransactionService {
 	 */
 	public String omniSign(String fromAddress, String toAddress, String privateKey, BigDecimal amount, Long fee,
 						   Integer propertyid, List<UTXO> utxos) throws Exception {
-		NetworkParameters networkParameters = isMainNet ? MainNetParams.get() : TestNet3Params.get();
+		NetworkParameters networkParameters = MainNetParams.get();
 		Transaction tran = new Transaction(networkParameters);
 		if(utxos==null||utxos.size()==0){
 			throw new Exception("utxo为空");
@@ -155,7 +153,7 @@ public class TransactionService {
 	 */
 	public List<UTXO> getUnspent(String address) {
 		List<UTXO> utxos = Lists.newArrayList();
-		String host = this.isMainNet ? "blockchain.info" : "testnet.blockchain.info";
+		String host = "blockchain.info";
 		String url = "https://" + host + "/zh-cn/unspent?active=" + address;
 		try {
 			String httpGet = HttpUtil.sendGet(url);//TODO;联网
@@ -215,6 +213,7 @@ public class TransactionService {
 	 * @return
 	 */
 	public MessageResult transferFromWallet(Account account, String fromAddress, String address, BigDecimal amount) {
+		// omni的propertyid是1，所以在omni_getbalance时最后传了一个1，正式环境usdt的propertyid是31。
 		Integer propertyid = 31;
 		// 获取UTXO列表
 		List< UTXO > utxos = this.getUnspent(fromAddress);

@@ -84,11 +84,15 @@ public class HttpRequest {
         return result;
     }
 
-//    public static void main(String[] args) {
+    public static void main(String[] args) {
+        Long startTime = 1582807076404L;
+        Long endTime = System.currentTimeMillis();
+        Long time = endTime - startTime;
+        System.out.println("time: " + time/1000);
 //        String str = sendGetData("https://blockchain.info/block-height/593323?format=json","");
 //        String str = sendPost("https://wallet.tokenview.com/onchainwallet/btc")
 //        System.out.println("str: " + str);
-//    }
+    }
 
     /**
      * get请求传输数据
